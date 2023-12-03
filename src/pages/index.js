@@ -69,7 +69,7 @@ export default function Home() {
                     </div>
                     <h6 className="text-xl font-semibold">No risk!</h6>
                     <p className="mt-2 mb-4 text-gray-600">
-                      Divide details about your product or agency work into parts. A paragraph describing a feature will be enough.
+                      We keep your information private so you can save the stress of sending <em>that</em> text. When they give us a list of who they like and they put you, we'll tell you immediately!
                     </p>
                   </div>
                 </div>
@@ -85,7 +85,7 @@ export default function Home() {
                       7 chances!
                     </h6>
                     <p className="mt-2 mb-4 text-gray-600">
-                      Keep you user engaged by providing meaningful information. Remember that by this time, the user is curious.
+                      Have multiple crushes in mind and trying to find who likes you? You have seven chances to find which of them likes you back (or who responds the quickest to your requests).
                     </p>
                   </div>
                 </div>
@@ -98,10 +98,10 @@ export default function Home() {
                       <i className="fas fa-heart"></i>
                     </div>
                     <h6 className="text-xl font-semibold">
-                      Quick notification!
+                      End goal?
                     </h6>
                     <p className="mt-2 mb-4 text-gray-600">
-                      Write a few lines about each one. A paragraph describing a feature will be enough. Keep you user engaged!
+                      After you match with your first person, your account won't work for matching with new people! Go on with your match and be happy! Post about it with #YourCupid on TikTok how your first date goes.
                     </p>
                   </div>
                 </div>

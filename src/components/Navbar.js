@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/router';
+import Image from 'next/image';
 
 import Link from "next/link";
 import { useAuth } from "contexts/auth";
@@ -29,7 +30,12 @@ export default function Navbar(props) {
             }
             href="/"
           >
-            Cupid
+            <Image
+              alt="..."
+              src="/images/logo-image.png"
+              width={50}
+              height={50}
+              />
           </Link>
           <button
             className="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"

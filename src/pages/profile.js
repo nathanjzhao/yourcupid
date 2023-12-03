@@ -15,17 +15,13 @@ export default function Profile() {
   const {user, setLoading} = useAuth();
 
   const MAX_CRUSHES = 7;
-  const [crushes, setCrushes] = useState([])
-  const [crushers, setCrushers] = useState([])
+  const [crushes, setCrushes] = useState([]);
+  const [crushers, setCrushers] = useState([]);
 
   const [displayName, setDisplayName] = useState('');
 
   const [crushName, setCrushName] = useState('')
   const [crushEmail, setCrushEmail] = useState('')
-
-  function timeout(delay) {
-    return new Promise( res => setTimeout(res, delay) );
-  }
 
   // Because context updates too slow!
   useEffect(() => {
@@ -52,6 +48,15 @@ export default function Profile() {
     })
   }, []);
 
+  const editCrushes = (crushes, email, newStatus) => {
+    return crushes.map(item => {
+        var temp = Object.assign({}, item);
+        if (temp.email === email) {
+            temp.status = newStatus;
+        }
+        return temp;
+    });
+}
   const submit = async (event) => {
     event.preventDefault();
 
@@ -78,6 +83,7 @@ export default function Profile() {
     const collectionRef = collection(db, "users");
     var q = query(collectionRef, where("email", "==", crushEmail));
 
+    // BAD CODE !! 
     const promise = new Promise ((resolve) => {
       getCountFromServer(q).then((querySnap) => {
         if (querySnap.data().count == 0) {
@@ -92,10 +98,6 @@ export default function Profile() {
           q = query(collectionRef, where("email", "==", crushEmail));
           getDocs(q).then(queryDoc => {
             queryDoc.forEach((docSnap) => {
-              updateDoc(docSnap.ref, {
-                crushers: arrayUnion({name : displayName, email : userEmail})
-              });
-
               getDoc(docSnap.ref).then(async crushDoc => {
 
                 const crushData = crushDoc.data();
@@ -124,35 +126,57 @@ export default function Profile() {
                     crushStatus = 3;
                   }
                 }
-
-                console.log(crushes);
-                if (crushes.length == MAX_CRUSHES - 1) {
-                  await new Promise ((resolve) => {
-                    resolve();
-                  })
-                }
-                await new Promise(r => setTimeout(r, 10000));
-
                 resolve();
               })
+
+              updateDoc(docSnap.ref, {
+                crushers: arrayUnion({name : displayName, email : userEmail})
+              });
             })
           })
         }
       })
     })
-
     
     promise
       .then(async () => {
         
-        q = query(collection(db, "users"), where("email", "==", userEmail))
-        getDocs(q).then(querySnap => {
-          querySnap.forEach((docSnap) => {
-            updateDoc(docSnap.ref, {
-              crushes: arrayUnion({name : crushName, email : crushEmail, status : crushStatus})
-            });
+        await new Promise((resolve) => {
+          q = query(collection(db, "users"), where("email", "==", userEmail))
+          getDocs(q).then(querySnap => {
+            querySnap.forEach((docSnap) => {
+              updateDoc(docSnap.ref, {
+                crushes: arrayUnion({name : crushName, email : crushEmail, status : crushStatus})
+              });
+            })
           })
+          resolve();
         })
+
+        if (crushes.length == MAX_CRUSHES - 1) {
+          await new Promise ((resolve) => {
+            crushers.map(async (crusher, index) => {
+              
+              if (crushes.some(e => e.email != crusher.email)) {
+                q = query(collectionRef, where("email", "==", crusher.email));
+                getDocs(q).then(queryDoc => {
+                  queryDoc.forEach((crusherDocSnap) => {
+                    getDoc(crusherDocSnap.ref).then(async crusherDoc => {
+                      const crusherCrushes = crusherDoc.data().crushes;
+                      const updatedCrusherCrushes = editCrushes(crusherCrushes, userEmail, 1);
+
+                      updateDoc(crusherDocSnap.ref, {
+                        crushes: updatedCrusherCrushes
+                      });
+
+                    })
+                  })
+                })
+              }
+            })
+            resolve();
+          })
+        }
 
         if (crushStatus == 0) {
           // Send invite

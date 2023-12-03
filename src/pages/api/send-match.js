@@ -14,7 +14,6 @@ export default async function handler(req, res) {
   }
   
   const { name, email } = await req.body;
-
   if (!name || !email) {
     throw new Error("Missing email or name of user being sent to");
   }

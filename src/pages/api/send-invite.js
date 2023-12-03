@@ -41,7 +41,7 @@ export default async function handler(req, res) {
                   },
                   To: [
                     {
-                      Email: name,
+                      Email: email,
                       Name: name
                     }
                   ],
