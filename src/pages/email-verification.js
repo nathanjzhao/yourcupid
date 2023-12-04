@@ -16,6 +16,8 @@ export default function EmailVerification() {
                 <h2 className="text-4xl font-semibold">
                   Your verification email has been sent!
                 </h2>
+                <br/>
+                  Return to the homepage and login again once you've verified.
               </div>
             </div>
           </div>

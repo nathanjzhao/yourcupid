@@ -13,8 +13,9 @@ export default function Profile() {
   const router = useRouter();
 
   const {user, setLoading} = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const MAX_CRUSHES = 7;
+  const MAX_CRUSHES = 2;
   const [crushes, setCrushes] = useState([]);
   const [crushers, setCrushers] = useState([]);
 
@@ -22,6 +23,7 @@ export default function Profile() {
 
   const [crushName, setCrushName] = useState('')
   const [crushEmail, setCrushEmail] = useState('')
+  const [matched, setMatched] = useState(null)
 
   // Because context updates too slow!
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function Profile() {
           querySnap.forEach((docSnap) => {
             setCrushes(docSnap.data().crushes);
             setCrushers(docSnap.data().crushers);
+            setMatched(docSnap.data().matched);
           })
         })
       } else {
@@ -59,31 +62,47 @@ export default function Profile() {
 }
   const submit = async (event) => {
     event.preventDefault();
+    setIsSubmitting(true);
 
     const re = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
     if (!crushName || !re.test(crushEmail)) {
       alert("Make sure you fill both fields correctly!");
+      setIsSubmitting(false);
       return;
     }
 
     if (crushes.length == MAX_CRUSHES) {
       alert("You've submitted 7 of your crushes already. You've had enough!");
+      setIsSubmitting(false);
       return;
     }
 
     if (crushes.some(e => e.email == crushEmail) || crushes.some(e => e.name == crushName)) {
       alert("You've already told us this crush!");
+      setIsSubmitting(false);
       return;
     }
 
     var userName = displayName;
     var userEmail = user.email;
 
+    if (crushEmail == userEmail) {
+      alert("You cannot have a crush on yourself (or at least, you already know)!");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (matched != null) {
+      alert("You've already matched. Go off and have fun with them!");
+      setIsSubmitting(false);
+      return;
+    }
+
     var crushStatus = 0;
     const collectionRef = collection(db, "users");
-    var q = query(collectionRef, where("email", "==", crushEmail));
 
     // BAD CODE !! 
+    var q = query(collectionRef, where("email", "==", crushEmail));
     const promise = new Promise ((resolve) => {
       getCountFromServer(q).then((querySnap) => {
         if (querySnap.data().count == 0) {
@@ -107,13 +126,22 @@ export default function Profile() {
                   if (crushData.matched == null) {
                     crushStatus = 2;
 
-                    updateDoc(docSnap.ref, {
-                      matched: crushEmail
+                    q = query(collectionRef, where("email", "==", user.email));
+                    await getDocs(q).then(innerQueryDoc => {
+                      innerQueryDoc.forEach((innerDocSnap) => {
+                        updateDoc(innerDocSnap.ref, {
+                          matched: crushEmail
+                        });
+                      })
+                    })
+
+                    const updatedCrushCrushes = editCrushes(crushCrushes, userEmail, 2);
+
+                    await updateDoc(crushDoc.ref, {
+                      matched: userEmail,
+                      crushes: updatedCrushCrushes
                     });
 
-                    updateDoc(crushDoc.ref, {
-                      matched: userEmail
-                    });
                   } else {
                     crushStatus = 4;
                   }
@@ -156,19 +184,20 @@ export default function Profile() {
         if (crushes.length == MAX_CRUSHES - 1) {
           await new Promise ((resolve) => {
             crushers.map(async (crusher, index) => {
-              
-              if (crushes.some(e => e.email != crusher.email)) {
+              if (crusher.email != matched) {
                 q = query(collectionRef, where("email", "==", crusher.email));
                 getDocs(q).then(queryDoc => {
                   queryDoc.forEach((crusherDocSnap) => {
                     getDoc(crusherDocSnap.ref).then(async crusherDoc => {
-                      const crusherCrushes = crusherDoc.data().crushes;
-                      const updatedCrusherCrushes = editCrushes(crusherCrushes, userEmail, 1);
-
-                      updateDoc(crusherDocSnap.ref, {
-                        crushes: updatedCrusherCrushes
-                      });
-
+                      const crusherData = crusherDoc.data();
+                      if (crusherData.matched == null) {
+                        const crusherCrushes = crusherData.crushes;
+                        const updatedCrusherCrushes = editCrushes(crusherCrushes, userEmail, 1);
+    
+                        updateDoc(crusherDocSnap.ref, {
+                          crushes: updatedCrusherCrushes
+                        });
+                      }
                     })
                   })
                 })
@@ -211,6 +240,7 @@ export default function Profile() {
         // Leave the people who don't want you (anymore) alone :(
 
         await new Promise(r => setTimeout(r, 2000));
+        setIsSubmitting(false);
         router.reload();
 
       })
@@ -264,7 +294,7 @@ export default function Profile() {
                   </h3>
                   <div className="mb-2 text-gray-700 mt-10">
                     You currently have <b>{crushers.length}</b> people crushing on you. {crushers.length == 0 ? ":(" : null}<br/>
-                    {crushes.length < 7 ? 
+                    {crushes.length < MAX_CRUSHES ? 
                       `${crushers.length == 0 ? `You have ${MAX_CRUSHES - crushes.length} chances to try and find someone!`
                       : `You have ${MAX_CRUSHES - crushes.length} chances to try and match with them!`}`
                     : "You are out of crushes to send out :("
@@ -273,7 +303,7 @@ export default function Profile() {
                     <br/>
                     <br/>
                     
-                    Your crush statuses: 
+                    {crushes.length != 0 && "Your crush statuses:"}
                         {
                           crushes.map((item, index) => ( // matched, pending, did not match :(
                             <li key={index}><b>{item.name}:</b> {{
@@ -292,7 +322,7 @@ export default function Profile() {
                   <div className="flex flex-wrap justify-center">
                     <div className="w-full lg:w-9/12 px-4">
                       <div className="mb-4 text-lg leading-relaxed text-gray-800">
-                        {crushes.length < 7 ? "Below, you can input your crushes' name and email so we can try to match you!" : "You've used up all of your chances!"}
+                        {crushes.length < MAX_CRUSHES ? "Below, you can input your crushes' name and email so we can try to match you!" : "You've used up all of your chances!"}
 
                         <div className="flex flex-col mt-8">
                           <div className="mb-4 flex items-center">
@@ -305,7 +335,7 @@ export default function Profile() {
                             <input type="text" onChange={(e) => setCrushEmail(e.target.value)} id="input2" className="border w-full px-4 py-2" placeholder="randomemail@gmail.com" />
                           </div>
 
-                          <button type="submit" onClick={submit} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
+                          <button type="submit" onClick={submit} disabled={isSubmitting} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
                         </div>
 
                       </div>

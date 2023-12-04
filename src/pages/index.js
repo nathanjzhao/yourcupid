@@ -101,7 +101,7 @@ export default function Home() {
                       End goal?
                     </h6>
                     <p className="mt-2 mb-4 text-gray-600">
-                      After you match with your first person, your account won't work for matching with new people! Go on with your match and be happy! Post about it with #YourCupid on TikTok how your first date goes.
+                      After you match with your first person, we disable your account from matching with new people. Go on that first date! Post about it with #YourCupid on TikTok and tell us how it goes.
                     </p>
                   </div>
                 </div>
