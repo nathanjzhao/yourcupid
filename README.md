@@ -1,3 +1,3 @@
-This is a fully implemented fullstack app made with React.js, Next.js, TailwindCSS, and Firebase. I made this as a hobby project to help people find their crushes with no risk! I made this over a week, and it was mostly to get used to Next.js which I had never worked with before. This project also involved a lot of relational database work and managing documents.
+This is a fully implemented fullstack app made with React.js, Next.js, TailwindCSS, the MailJet API, and Firebase. I made this as a hobby project to help people find their crushes with no risk! I made this over a week, and it was mostly to get used to Next.js which I had never worked with before. This project also involved a lot of database work and managing document objects.
 
 If you're viewing this from the link on the website and this actually helped you, that's great! Tell me about it.
