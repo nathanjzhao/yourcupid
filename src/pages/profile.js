@@ -15,7 +15,7 @@ export default function Profile() {
   const {user, setLoading} = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const MAX_CRUSHES = 2;
+  const MAX_CRUSHES = 7;
   const [crushes, setCrushes] = useState([]);
   const [crushers, setCrushers] = useState([]);
 
