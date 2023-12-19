@@ -11,7 +11,7 @@ function MyApp({ Component, pageProps }) {
         <div>
           <Head>
             <title>YourCupid</title>
-            <link rel="YourCupid" href="/images/logo-image.png" />
+            <link rel="icon" href="/images/logo-image.png" />
           </Head>
         </div>
 
