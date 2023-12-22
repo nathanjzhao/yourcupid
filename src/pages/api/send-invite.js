@@ -51,17 +51,17 @@ export default async function handler(req, res) {
               ]
             })
 
-          request
+      request
             .then((result) => {
               console.log("Result:", result.body)
-              return new Error("Result:", result.body)
+              res.status(200).json({ message: 'Email sent successfully', data: result.body })
             })
             .catch((err) => {
               console.log("Error:", err.statusCode)
-              return new Error("Error:", err.statusCode)
+              res.status(500).json({ message: 'Email sending failed', error: err.statusCode })
             })
-    } catch (e) {
-      console.error(e);
-      return new Error("Error:", e)
+    } catch (err) {
+      console.log("Error:", err)
+      res.status(500).json({ message: 'Email sending failed', error: err })
     }
 }

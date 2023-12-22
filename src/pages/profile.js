@@ -168,78 +168,78 @@ export default function Profile() {
     
     promise
       .then(async () => {
+
+        let fetchPromises = [];
         
-        await new Promise((resolve) => {
-          q = query(collection(db, "users"), where("email", "==", userEmail))
-          getDocs(q).then(querySnap => {
-            querySnap.forEach((docSnap) => {
-              updateDoc(docSnap.ref, {
-                crushes: arrayUnion({name : crushName, email : crushEmail, status : crushStatus})
-              });
+        const promise = new Promise(async (resolve) => {
+          const q = query(collection(db, "users"), where("email", "==", userEmail));
+          const querySnap = await getDocs(q);
+          const updatePromises = querySnap.docs.map((docSnap) => 
+            updateDoc(docSnap.ref, {
+              crushes: arrayUnion({name : crushName, email : crushEmail, status : crushStatus})
             })
-          })
+          );
+          await Promise.all(updatePromises);
           resolve();
-        })
+        });
+        
+        fetchPromises.push(promise);
 
         if (crushes.length == MAX_CRUSHES - 1) {
-          await new Promise ((resolve) => {
-            crushers.map(async (crusher, index) => {
-              if (crusher.email != matched) {
-                q = query(collectionRef, where("email", "==", crusher.email));
-                getDocs(q).then(queryDoc => {
-                  queryDoc.forEach((crusherDocSnap) => {
-                    getDoc(crusherDocSnap.ref).then(async crusherDoc => {
-                      const crusherData = crusherDoc.data();
-                      if (crusherData.matched == null) {
-                        const crusherCrushes = crusherData.crushes;
-                        const updatedCrusherCrushes = editCrushes(crusherCrushes, userEmail, 1);
-    
-                        updateDoc(crusherDocSnap.ref, {
-                          crushes: updatedCrusherCrushes
-                        });
-                      }
-                    })
-                  })
-                })
+          const crusherPromises = crushers.map(async (crusher) => {
+            if (crusher.email != matched) {
+              const q = query(collectionRef, where("email", "==", crusher.email));
+              const queryDoc = await getDocs(q);
+              const docPromises = [];
+              for (const crusherDocSnap of queryDoc.docs) {
+                const crusherDoc = await getDoc(crusherDocSnap.ref);
+                const crusherData = crusherDoc.data();
+                if (crusherData.matched == null) {
+                  const crusherCrushes = crusherData.crushes;
+                  const updatedCrusherCrushes = editCrushes(crusherCrushes, userEmail, 1);
+                  const updatePromise = updateDoc(crusherDocSnap.ref, {
+                    crushes: updatedCrusherCrushes
+                  });
+                  docPromises.push(updatePromise);
+                }
               }
-            })
-            resolve();
-          })
+              return Promise.all(docPromises);
+            }
+          });
+        
+          fetchPromises.push(...(await Promise.all(crusherPromises)));
         }
 
-        if (crushStatus == 0) {
-          // Send invite
-          const response = fetch("/api/send-invite", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ name: crushName, email: crushEmail }),
-          })
-            
-        } else if (crushStatus == 2) {
-          // Matched!
-          const response = fetch("/api/send-match", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ name: crushName, email: crushEmail }),
-          })
 
-          const selfResponse = fetch("/api/send-match", {
+        if (crushStatus == 1) {
+          fetchPromises.push(fetch("/api/send-crush", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name: crushName, email: crushEmail }),
+          }));
+        } else if (crushStatus == 2) {
+          fetchPromises.push(fetch("/api/send-match", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name: crushName, email: crushEmail }),
+          }));
+
+          fetchPromises.push(fetch("/api/send-match", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({ name: userName, email: userEmail }),
-          })
+          }));
+        }
 
+        // Wait for all fetch requests to complete
+        await Promise.all(fetchPromises);
 
-        } 
-        // Leave the people who don't want you (anymore) alone :(
-
-        await new Promise(r => setTimeout(r, 2000));
         setIsSubmitting(false);
         router.reload();
 
