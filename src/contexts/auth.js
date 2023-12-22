@@ -1,10 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react'
-import Cookies from 'js-cookie'
 
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../services/firebase.js"
-
-//api here is an axios instance which has the baseURL set according to the env.
 
 const AuthContext = createContext({});
 
@@ -12,20 +9,6 @@ export const AuthProvider = ({ children }) => {
 
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
-
-    // useEffect(() => {
-    //     async function loadUserFromCookies() {
-    //         const token = Cookies.get('token')
-    //         if (token) {
-    //             console.log("Got a token in the cookies, let's see if it is valid")
-    //             api.defaults.headers.Authorization = `Bearer ${token}`
-    //             const { data: user } = await api.get('users/me')
-    //             if (user) setUser(user);
-    //         }
-    //         setLoading(false)
-    //     }
-    //     loadUserFromCookies()
-    // }, [])
 
     useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, (authUser) => {
