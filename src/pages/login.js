@@ -8,7 +8,7 @@ import FooterSmall from "../components/FooterSmall.js";
 
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { collection, addDoc, query, where, getCountFromServer } from "firebase/firestore"; 
-import { db, auth } from "../firebase.js"
+import { db, auth } from "../services/firebase.js"
 
 export default function Login() {
     const router = useRouter();

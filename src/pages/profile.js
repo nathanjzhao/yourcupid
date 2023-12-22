@@ -5,7 +5,7 @@ import Navbar from "components/Navbar.js";
 import FooterSmall from "components/FooterSmall.js";
 import { useAuth } from "contexts/auth";
 import { collection, addDoc, doc, getDoc, getDocs, updateDoc, arrayUnion, query, where, getCountFromServer } from "firebase/firestore";
-import { db, auth } from "../firebase.js"
+import { db, auth } from "../services/firebase.js"
 import { onAuthStateChanged } from "firebase/auth";
 
 export default function Profile() {

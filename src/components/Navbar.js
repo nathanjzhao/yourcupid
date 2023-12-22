@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 import Link from "next/link";
 import { useAuth } from "contexts/auth";
-import { auth } from "../firebase.js";
+import { auth } from "../services/firebase.js";
 import { signOut } from "firebase/auth";
 
 export default function Navbar(props) {

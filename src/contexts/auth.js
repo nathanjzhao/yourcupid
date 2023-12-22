@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react'
 import Cookies from 'js-cookie'
 
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../firebase.js"
+import { auth } from "../services/firebase.js"
 
 //api here is an axios instance which has the baseURL set according to the env.
 

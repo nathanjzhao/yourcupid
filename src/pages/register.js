@@ -8,7 +8,7 @@ import FooterSmall from "../components/FooterSmall.js";
 
 import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile, signInWithPopup, GoogleAuthProvider, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { collection, addDoc, doc, updateDoc, query, where, getCountFromServer} from "firebase/firestore"; 
-import { db, auth } from "../firebase.js"
+import { db, auth } from "../services/firebase.js"
 
 export default function Register() {
   const router = useRouter();
