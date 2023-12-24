@@ -171,7 +171,7 @@ export default function Profile() {
 
         let fetchPromises = [];
         
-        const promise = new Promise(async (resolve) => {
+        await new Promise(async (resolve) => {
           const q = query(collection(db, "users"), where("email", "==", userEmail));
           const querySnap = await getDocs(q);
           const updatePromises = querySnap.docs.map((docSnap) => 
@@ -182,8 +182,6 @@ export default function Profile() {
           await Promise.all(updatePromises);
           resolve();
         });
-        
-        fetchPromises.push(promise);
 
         if (crushes.length == MAX_CRUSHES - 1) {
           const crusherPromises = crushers.map(async (crusher) => {
@@ -211,14 +209,14 @@ export default function Profile() {
         }
 
 
-        if (crushStatus == 1) {
-          fetchPromises.push(fetch("/api/send-crush", {
+        if (crushStatus == 0) {
+          const response = fetch("/api/send-invite", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({ name: crushName, email: crushEmail }),
-          }));
+          });
         } else if (crushStatus == 2) {
           fetchPromises.push(fetch("/api/send-match", {
             method: "POST",
@@ -239,7 +237,7 @@ export default function Profile() {
 
         // Wait for all fetch requests to complete
         await Promise.all(fetchPromises);
-
+        
         setIsSubmitting(false);
         router.reload();
 
